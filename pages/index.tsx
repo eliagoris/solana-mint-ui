@@ -22,15 +22,16 @@ export default function Home() {
   useEffect(() => {
     ;(async () => {
       if (wallet && connection) {
+        if (!process.env.NEXT_PUBLIC_CANDY_MACHINE_ID) {
+          throw new Error("Please provide a candy machine id")
+        }
         const metaplex = new Metaplex(connection).use(
           walletAdapterIdentity(wallet)
         )
         setMetaplex(metaplex)
 
         const candyMachine = await metaplex.candyMachines().findByAddress({
-          address: new PublicKey(
-            "FDvoKWYThvweZFn8j1MStAw3NxTRsQPqux4wwiYgXC12"
-          ),
+          address: new PublicKey(process.env.NEXT_PUBLIC_CANDY_MACHINE_ID),
         })
 
         setMetaplex(metaplex)
