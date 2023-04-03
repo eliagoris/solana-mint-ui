@@ -9,7 +9,11 @@ body {
   font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;
   color: #fafafa;
   font-size: 15px;
-  font-weight: 145%;
+  line-height: 1.45;
+}
+
+h1, p {
+  margin: 0
 }
 
 button {
