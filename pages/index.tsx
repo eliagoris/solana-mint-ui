@@ -1,6 +1,9 @@
 import Head from "next/head"
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
+import { useWallet } from "@solana/wallet-adapter-react"
 
 export default function Home() {
+  const { publicKey } = useWallet()
   return (
     <>
       <Head>
@@ -19,6 +22,16 @@ export default function Home() {
       >
         <h1>pNFTs mint</h1>
         <p>mint pNFTs from the ui</p>
+
+        <WalletMultiButton
+          style={{
+            backgroundColor: "#121212",
+            border: "1px solid #00ffbd",
+            borderColor: "#00ffbd",
+            fontSize: "16px",
+          }}
+        />
+        <button>mint</button>
       </main>
     </>
   )
