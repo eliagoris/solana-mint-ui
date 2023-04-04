@@ -18,6 +18,7 @@ import {
 import {
   createMintV2Instruction,
   MintV2InstructionAccounts,
+  MintV2InstructionArgs,
 } from "@metaplex-foundation/mpl-candy-guard"
 
 import {
@@ -32,7 +33,8 @@ export const METAPLEX_PROGRAM_ID = new PublicKey(
 )
 
 /** To mint from the candy guard as a minter */
-export async function mintV2Instructions(
+/** From: https://github.com/metaplex-foundation/mpl-candy-guard/blob/main/js/test/setup/txs-init.ts#L679  */
+export async function mintV2Instruction(
   candyGuard: PublicKey,
   candyMachine: PublicKey,
   minter: PublicKey,
@@ -126,7 +128,7 @@ export async function mintV2Instructions(
     mintArgs = new Uint8Array()
   }
 
-  const args = {
+  const args: MintV2InstructionArgs = {
     mintArgs,
     label: label ?? null,
   }

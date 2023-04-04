@@ -5,12 +5,52 @@ import { useEffect, useState } from "react"
 import {
   CandyMachine,
   Metaplex,
+  Option,
   PublicKey,
   walletAdapterIdentity,
+  SolPaymentGuardSettings,
+  StartDateGuardSettings,
 } from "@metaplex-foundation/js"
+import { Keypair, Transaction, AccountMeta } from "@solana/web3.js"
 
-import { Keypair, Transaction } from "@solana/web3.js"
-import { mintV2Instructions } from "@/utils/mintV2"
+import { mintV2Instruction } from "@/utils/mintV2"
+
+/**
+ * Returns remaining accounts by Candy Guard type.
+ * Some Guards doesn't require remaining accounts, so in this case it will return an empty array.
+ */
+const getRemainingAccountsByGuardType = (
+  guard: Option<SolPaymentGuardSettings | StartDateGuardSettings | object>,
+  guardType: string
+) => {
+  const remainingAccs: {
+    [key: string]: () => AccountMeta[]
+  } = {
+    solPayment: () => {
+      const solPaymentGuard = guard as SolPaymentGuardSettings
+
+      return [
+        {
+          pubkey: solPaymentGuard.destination,
+          isSigner: false,
+          isWritable: true,
+        },
+      ]
+    },
+  }
+
+  if (!remainingAccs[guardType]) {
+    console.warn(
+      "Couldn't find remaining accounts for Guard " +
+        guardType +
+        ". This can most likely cause the mint tx to fail."
+    )
+
+    return []
+  }
+
+  return remainingAccs[guardType]()
+}
 
 export default function Home() {
   const wallet = useWallet()
@@ -39,6 +79,71 @@ export default function Home() {
       }
     })()
   }, [wallet, connection])
+
+  /** Mints NFTs through a Candy Machine using Candy Guards */
+  const handleMintV2 = async () => {
+    if (!metaplex || !candyMachine || !publicKey || !candyMachine.candyGuard)
+      return null
+
+    if (!candyMachine.candyGuard)
+      throw new Error(
+        "This app only works with Candy Guards. Please setup your Guards through Sugar."
+      )
+
+    try {
+      const { guards } = candyMachine.candyGuard
+
+      /** Filter only enabled Guards */
+      const enabledGuards =
+        guards && Object.keys(guards).filter((guardKey) => guards[guardKey])
+
+      let remainingAccounts: AccountMeta[] = []
+      if (enabledGuards.length) {
+        /** Map all Guards and grab their remaining accounts */
+        enabledGuards.forEach((guard) => {
+          const candyGuard = candyMachine.candyGuard?.guards[guard]
+
+          if (!candyGuard) return null
+          const remaining = getRemainingAccountsByGuardType(candyGuard, guard)
+
+          /** Push to the accounts array */
+          if (remaining.length) {
+            remainingAccounts.push(...remaining)
+          }
+        })
+      }
+
+      const mint = Keypair.generate()
+      const { instructions } = await mintV2Instruction(
+        candyMachine.candyGuard?.address,
+        candyMachine.address,
+        publicKey,
+        publicKey,
+        mint,
+        connection,
+        metaplex,
+        remainingAccounts
+      )
+
+      const tx = new Transaction().add(...instructions)
+
+      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+
+      const txid = await wallet.sendTransaction(tx, connection, {
+        signers: [mint],
+      })
+
+      const latest = await connection.getLatestBlockhash()
+      await connection.confirmTransaction({
+        blockhash: latest.blockhash,
+        lastValidBlockHeight: latest.lastValidBlockHeight,
+        signature: txid,
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   return (
     <>
       <Head>
@@ -66,47 +171,7 @@ export default function Home() {
             fontSize: "16px",
           }}
         />
-        <button
-          onClick={async () => {
-            if (
-              !metaplex ||
-              !candyMachine ||
-              !publicKey ||
-              !candyMachine.candyGuard
-            )
-              return null
-
-            const mint = Keypair.generate()
-            const { instructions } = await mintV2Instructions(
-              candyMachine.candyGuard?.address,
-              candyMachine.address,
-              publicKey,
-              publicKey,
-              mint,
-              connection,
-              metaplex
-            )
-
-            const tx = new Transaction().add(...instructions)
-
-            tx.recentBlockhash = (
-              await connection.getLatestBlockhash()
-            ).blockhash
-
-            const txid = await wallet.sendTransaction(tx, connection, {
-              signers: [mint],
-            })
-
-            const latest = await connection.getLatestBlockhash()
-            await connection.confirmTransaction({
-              blockhash: latest.blockhash,
-              lastValidBlockHeight: latest.lastValidBlockHeight,
-              signature: txid,
-            })
-          }}
-        >
-          mint
-        </button>
+        <button onClick={handleMintV2}>mint</button>
       </main>
     </>
   )
