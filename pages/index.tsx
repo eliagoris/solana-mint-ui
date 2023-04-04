@@ -5,59 +5,23 @@ import { useEffect, useState } from "react"
 import {
   CandyMachine,
   Metaplex,
-  Option,
   PublicKey,
   walletAdapterIdentity,
-  SolPaymentGuardSettings,
-  StartDateGuardSettings,
 } from "@metaplex-foundation/js"
 import { Keypair, Transaction, AccountMeta } from "@solana/web3.js"
 
-import { mintV2Instruction } from "@/utils/mintV2"
-
-/**
- * Returns remaining accounts by Candy Guard type.
- * Some Guards doesn't require remaining accounts, so in this case it will return an empty array.
- */
-const getRemainingAccountsByGuardType = (
-  guard: Option<SolPaymentGuardSettings | StartDateGuardSettings | object>,
-  guardType: string
-) => {
-  const remainingAccs: {
-    [key: string]: () => AccountMeta[]
-  } = {
-    solPayment: () => {
-      const solPaymentGuard = guard as SolPaymentGuardSettings
-
-      return [
-        {
-          pubkey: solPaymentGuard.destination,
-          isSigner: false,
-          isWritable: true,
-        },
-      ]
-    },
-  }
-
-  if (!remainingAccs[guardType]) {
-    console.warn(
-      "Couldn't find remaining accounts for Guard " +
-        guardType +
-        ". This can most likely cause the mint tx to fail."
-    )
-
-    return []
-  }
-
-  return remainingAccs[guardType]()
-}
-
+import {
+  getRemainingAccountsByGuardType,
+  mintV2Instruction,
+} from "@/utils/mintV2"
+import { fromTxError } from "@/utils/errors"
 export default function Home() {
   const wallet = useWallet()
   const { publicKey } = wallet
   const { connection } = useConnection()
   const [metaplex, setMetaplex] = useState<Metaplex | null>(null)
   const [candyMachine, setCandyMachine] = useState<CandyMachine | null>(null)
+  const [formMessage, setFormMessage] = useState<string | null>(null)
 
   useEffect(() => {
     ;(async () => {
@@ -141,6 +105,11 @@ export default function Home() {
       })
     } catch (e) {
       console.log(e)
+      const msg = fromTxError(e)
+
+      if (msg) {
+        setFormMessage(msg.message)
+      }
     }
   }
 
@@ -172,6 +141,7 @@ export default function Home() {
           }}
         />
         <button onClick={handleMintV2}>mint</button>
+        {formMessage}
       </main>
     </>
   )

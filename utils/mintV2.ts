@@ -25,7 +25,11 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token"
-import { Metaplex } from "@metaplex-foundation/js"
+import {
+  Metaplex,
+  Option,
+  SolPaymentGuardSettings,
+} from "@metaplex-foundation/js"
 
 export const CANDY_MACHINE_PROGRAM = PROGRAM_ID
 export const METAPLEX_PROGRAM_ID = new PublicKey(
@@ -168,4 +172,41 @@ export async function mintV2Instruction(
   ixs.push(mintIx)
 
   return { instructions: ixs }
+}
+
+/**
+ * Returns remaining accounts by Candy Guard type.
+ * Some Guards doesn't require remaining accounts, so in this case it will return an empty array.
+ */
+export const getRemainingAccountsByGuardType = (
+  guard: Option<SolPaymentGuardSettings | object>,
+  guardType: string
+) => {
+  const remainingAccs: {
+    [key: string]: () => AccountMeta[]
+  } = {
+    solPayment: () => {
+      const solPaymentGuard = guard as SolPaymentGuardSettings
+
+      return [
+        {
+          pubkey: solPaymentGuard.destination,
+          isSigner: false,
+          isWritable: true,
+        },
+      ]
+    },
+  }
+
+  if (!remainingAccs[guardType]) {
+    console.warn(
+      "Couldn't find remaining accounts for Guard " +
+        guardType +
+        ". This can most likely cause the mint tx to fail."
+    )
+
+    return []
+  }
+
+  return remainingAccs[guardType]()
 }
