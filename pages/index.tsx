@@ -127,6 +127,14 @@ export default function Home() {
     }
   }
 
+  const cost = candyMachine
+    ? candyMachine.candyGuard?.guards.solPayment
+      ? Number(candyMachine.candyGuard?.guards.solPayment?.amount.basisPoints) /
+          1e9 +
+        " SOL"
+      : "Free mint"
+    : "..."
+
   return (
     <>
       <Head>
@@ -186,7 +194,7 @@ export default function Home() {
                 }}
               >
                 <span>Public</span>
-                <b>1 SOL</b>
+                <b>{cost}</b>
               </div>
               <div
                 style={{
