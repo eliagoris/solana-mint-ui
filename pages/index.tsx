@@ -5,7 +5,11 @@ import { useEffect, useState } from "react"
 import {
   CandyMachine,
   Metaplex,
+  Nft,
+  NftWithToken,
   PublicKey,
+  Sft,
+  SftWithToken,
   walletAdapterIdentity,
 } from "@metaplex-foundation/js"
 import { Keypair, Transaction, AccountMeta } from "@solana/web3.js"
@@ -21,6 +25,9 @@ export default function Home() {
   const { connection } = useConnection()
   const [metaplex, setMetaplex] = useState<Metaplex | null>(null)
   const [candyMachine, setCandyMachine] = useState<CandyMachine | null>(null)
+  const [collection, setCollection] = useState<
+    Sft | SftWithToken | Nft | NftWithToken | null
+  >(null)
   const [formMessage, setFormMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -38,8 +45,15 @@ export default function Home() {
           address: new PublicKey(process.env.NEXT_PUBLIC_CANDY_MACHINE_ID),
         })
 
-        setMetaplex(metaplex)
         setCandyMachine(candyMachine)
+
+        const collection = await metaplex
+          .nfts()
+          .findByMint({ mintAddress: candyMachine.collectionMintAddress })
+
+        setCollection(collection)
+
+        console.log(collection)
       }
     })()
   }, [wallet, connection])
@@ -126,22 +140,81 @@ export default function Home() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          padding: "32px 0",
+          padding: "96px 0",
         }}
       >
-        <h1>pNFTs mint</h1>
-        <p>mint pNFTs from the ui</p>
-
-        <WalletMultiButton
+        <div
           style={{
-            backgroundColor: "#121212",
-            border: "1px solid #00ffbd",
-            borderColor: "#00ffbd",
-            fontSize: "16px",
+            display: "flex",
+            gap: "32px",
+            alignItems: "flex-start",
           }}
-        />
-        <button onClick={handleMintV2}>mint</button>
-        {formMessage}
+        >
+          <img
+            style={{ maxWidth: "396px", borderRadius: "8px" }}
+            src={collection?.json?.image}
+          />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              background: "#111",
+              padding: "32px 24px",
+              borderRadius: "16px",
+              border: "1px solid #222",
+              minWidth: "320px",
+            }}
+          >
+            <h1>{collection?.name}</h1>
+            <p style={{ color: "#807a82", marginBottom: "32px" }}>
+              {collection?.json?.description}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                background: "#261727",
+                padding: "16px 12px",
+                borderRadius: "16px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span>Public</span>
+                <b>1 SOL</b>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "16px",
+                }}
+              >
+                <span style={{ fontSize: "11px" }}>Live</span>
+                <span style={{ fontSize: "11px" }}>512/1024</span>
+              </div>
+              <button onClick={handleMintV2}>mint</button>
+              <WalletMultiButton
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  marginTop: "8px",
+                  padding: "8px 0",
+                  justifyContent: "center",
+                  fontSize: "13px",
+                  backgroundColor: "#111",
+                  lineHeight: "1.45",
+                }}
+              />
+              {formMessage}
+            </div>
+          </div>
+        </div>
       </main>
     </>
   )
