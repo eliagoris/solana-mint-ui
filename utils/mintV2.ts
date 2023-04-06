@@ -282,6 +282,30 @@ export const getRemainingAccountsByGuardType = ({
 
       return { ixs: [routeIx], accounts: remainingAccounts }
     },
+    mintLimit: () => {
+      if (!candyMachine.candyGuard) return {}
+
+      const [mintCounterPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("mint_limit"),
+          new Uint8Array([0]),
+          payer.toBuffer(),
+          candyMachine.candyGuard?.address.toBuffer(),
+          candyMachine.address.toBuffer(),
+        ],
+        CANDY_GUARD_PROGRAM_ID
+      )
+
+      return {
+        accounts: [
+          {
+            pubkey: mintCounterPda,
+            isSigner: false,
+            isWritable: true,
+          },
+        ],
+      }
+    },
   }
 
   if (!remainingAccs[guardType]) {

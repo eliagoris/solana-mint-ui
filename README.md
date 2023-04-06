@@ -9,8 +9,8 @@ After these, you can use this UI to mint pNFTs.
 ## Candy Guards supported
 
 - Start date
-- SOL payment
-- Allowlist
+- [Sol Payment](https://docs.metaplex.com/programs/candy-machine/available-guards/sol-payment)
+- [Allow List](https://docs.metaplex.com/programs/candy-machine/available-guards/allow-list)
   - Grab your Merkle Root from [here](https://tools.key-strokes.com/merkle-root)
   - Add the Merkle Root to your Sugar config.json:
     ```
@@ -19,6 +19,7 @@ After these, you can use this UI to mint pNFTs.
         },
     ```
   - Add your allow list wallets to the `allowlist.json` file
+- [Mint Limit](https://docs.metaplex.com/programs/candy-machine/available-guards/mint-limit)
 
 ## develop locally
 
