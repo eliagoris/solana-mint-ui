@@ -11,7 +11,14 @@ After these, you can use this UI to mint pNFTs.
 - Start date
 - SOL payment
 - Allowlist
-  - Add your allow list to the `allowlist.json` file
+  - Grab your Merkle Root from [here](https://tools.key-strokes.com/merkle-root)
+  - Add the Merkle Root to your Sugar config.json:
+    ```
+        "allowList": {
+            "merkleRoot": "e889dfa8fbfb6016378348ca395f243c55a0768647c2ca58e5febffa17e02d60"
+        },
+    ```
+  - Add your allow list wallets to the `allowlist.json` file
 
 ## develop locally
 
