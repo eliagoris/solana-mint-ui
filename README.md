@@ -8,7 +8,7 @@ After these, you can use this UI to mint pNFTs.
 
 ## Candy Guards supported
 
-- Start date
+- [Start date](https://docs.metaplex.com/programs/candy-machine/available-guards/start-date)
 - [Sol Payment](https://docs.metaplex.com/programs/candy-machine/available-guards/sol-payment)
 - [Allow List](https://docs.metaplex.com/programs/candy-machine/available-guards/allow-list)
   - Grab your Merkle Root from [here](https://tools.key-strokes.com/merkle-root)
