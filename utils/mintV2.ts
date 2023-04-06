@@ -206,6 +206,10 @@ export const getRemainingAccountsByGuardType = ({
       ixs?: TransactionInstruction[]
     }
   } = {
+    startDate: () => {
+      // start date is default
+      return {}
+    },
     solPayment: () => {
       const solPaymentGuard = guard as SolPaymentGuardSettings
 
