@@ -12,10 +12,10 @@ import {
   SftWithToken,
   walletAdapterIdentity,
 } from "@metaplex-foundation/js"
-import { Keypair, Transaction, AccountMeta } from "@solana/web3.js"
+import { Keypair, Transaction } from "@solana/web3.js"
 
 import {
-  getRemainingAccountsByGuardType,
+  getRemainingAccountsForCandyGuard,
   mintV2Instruction,
 } from "@/utils/mintV2"
 import { fromTxError } from "@/utils/errors"
@@ -69,27 +69,8 @@ export default function Home() {
       )
 
     try {
-      const { guards } = candyMachine.candyGuard
-
-      /** Filter only enabled Guards */
-      const enabledGuards =
-        guards && Object.keys(guards).filter((guardKey) => guards[guardKey])
-
-      let remainingAccounts: AccountMeta[] = []
-      if (enabledGuards.length) {
-        /** Map all Guards and grab their remaining accounts */
-        enabledGuards.forEach((guard) => {
-          const candyGuard = candyMachine.candyGuard?.guards[guard]
-
-          if (!candyGuard) return null
-          const remaining = getRemainingAccountsByGuardType(candyGuard, guard)
-
-          /** Push to the accounts array */
-          if (remaining.length) {
-            remainingAccounts.push(...remaining)
-          }
-        })
-      }
+      const { remainingAccounts, additionalIxs } =
+        getRemainingAccountsForCandyGuard(candyMachine, publicKey)
 
       const mint = Keypair.generate()
       const { instructions } = await mintV2Instruction(
@@ -103,7 +84,13 @@ export default function Home() {
         remainingAccounts
       )
 
-      const tx = new Transaction().add(...instructions)
+      const tx = new Transaction()
+
+      if (additionalIxs?.length) {
+        tx.add(...additionalIxs)
+      }
+
+      tx.add(...instructions)
 
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
 
@@ -118,7 +105,6 @@ export default function Home() {
         signature: txid,
       })
     } catch (e) {
-      console.log(e)
       const msg = fromTxError(e)
 
       if (msg) {

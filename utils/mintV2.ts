@@ -17,8 +17,13 @@ import {
 } from "@metaplex-foundation/mpl-candy-machine-core"
 import {
   createMintV2Instruction,
+  createRouteInstruction,
+  GuardType,
   MintV2InstructionAccounts,
   MintV2InstructionArgs,
+  RouteInstructionAccounts,
+  RouteInstructionArgs,
+  PROGRAM_ID as CANDY_GUARD_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-candy-guard"
 
 import {
@@ -26,10 +31,16 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token"
 import {
+  CandyMachine as CandyMachineType,
+  DefaultCandyGuardSettings,
+  getMerkleProof,
+  getMerkleRoot,
   Metaplex,
   Option,
   SolPaymentGuardSettings,
 } from "@metaplex-foundation/js"
+import { u32 } from "@metaplex-foundation/beet"
+import allowList from "../allowlist.json"
 
 export const CANDY_MACHINE_PROGRAM = PROGRAM_ID
 export const METAPLEX_PROGRAM_ID = new PublicKey(
@@ -178,23 +189,98 @@ export async function mintV2Instruction(
  * Returns remaining accounts by Candy Guard type.
  * Some Guards doesn't require remaining accounts, so in this case it will return an empty array.
  */
-export const getRemainingAccountsByGuardType = (
-  guard: Option<SolPaymentGuardSettings | object>,
+export const getRemainingAccountsByGuardType = ({
+  candyMachine,
+  payer,
+  guard,
+  guardType,
+}: {
+  candyMachine: CandyMachineType<DefaultCandyGuardSettings>
+  payer: PublicKey
+  guard: Option<SolPaymentGuardSettings | object>
   guardType: string
-) => {
+}) => {
   const remainingAccs: {
-    [key: string]: () => AccountMeta[]
+    [key: string]: () => {
+      accounts?: AccountMeta[]
+      ixs?: TransactionInstruction[]
+    }
   } = {
     solPayment: () => {
       const solPaymentGuard = guard as SolPaymentGuardSettings
 
-      return [
+      return {
+        accounts: [
+          {
+            pubkey: solPaymentGuard.destination,
+            isSigner: false,
+            isWritable: true,
+          },
+        ],
+      }
+    },
+    allowList: () => {
+      if (!candyMachine.candyGuard) return {}
+
+      const accounts: RouteInstructionAccounts = {
+        candyGuard: candyMachine.candyGuard.address,
+        candyMachine: candyMachine.address,
+        payer,
+      }
+
+      const merkleRoot = getMerkleRoot(allowList)
+      const validMerkleProof = getMerkleProof(allowList, payer.toString())
+
+      const vectorSizeBuffer = Buffer.alloc(4)
+      u32.write(vectorSizeBuffer, 0, validMerkleProof.length)
+
+      // prepares the mint arguments with the merkle proof
+      const mintArgs = Buffer.concat([vectorSizeBuffer, ...validMerkleProof])
+
+      const args: RouteInstructionArgs = {
+        args: {
+          guard: GuardType.AllowList,
+          data: mintArgs,
+        },
+        label: null,
+      }
+
+      const [proofPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("allow_list"),
+          merkleRoot,
+          payer.toBuffer(),
+          candyMachine.candyGuard.address.toBuffer(),
+          candyMachine.address.toBuffer(),
+        ],
+        CANDY_GUARD_PROGRAM_ID
+      )
+
+      const routeIx = createRouteInstruction(accounts, args)
+      routeIx.keys.push(
+        ...[
+          {
+            pubkey: proofPda,
+            isSigner: false,
+            isWritable: true,
+          },
+          {
+            pubkey: SystemProgram.programId,
+            isSigner: false,
+            isWritable: false,
+          },
+        ]
+      )
+
+      const remainingAccounts = [
         {
-          pubkey: solPaymentGuard.destination,
+          pubkey: proofPda,
           isSigner: false,
-          isWritable: true,
+          isWritable: false,
         },
       ]
+
+      return { ixs: [routeIx], accounts: remainingAccounts }
     },
   }
 
@@ -205,8 +291,52 @@ export const getRemainingAccountsByGuardType = (
         ". This can most likely cause the mint tx to fail."
     )
 
-    return []
+    return {}
   }
 
   return remainingAccs[guardType]()
+}
+
+export const getRemainingAccountsForCandyGuard = (
+  candyMachine: CandyMachineType<DefaultCandyGuardSettings>,
+  payer: PublicKey
+) => {
+  if (!candyMachine.candyGuard) return {}
+
+  const { guards } = candyMachine.candyGuard
+
+  /** Filter only enabled Guards */
+  const enabledGuardsKeys =
+    guards && Object.keys(guards).filter((guardKey) => guards[guardKey])
+
+  let remainingAccounts: AccountMeta[] = []
+  let additionalIxs: TransactionInstruction[] = []
+  if (enabledGuardsKeys.length) {
+    /** Map all Guards and grab their remaining accounts */
+    enabledGuardsKeys.forEach((guardKey) => {
+      const guardObject = candyMachine.candyGuard?.guards[guardKey]
+
+      if (!guardObject) return null
+
+      console.log(`Setting up ${guardKey} Guard...`)
+      const { accounts, ixs } = getRemainingAccountsByGuardType({
+        candyMachine,
+        payer,
+        guard: guardObject,
+        guardType: guardKey,
+      })
+
+      /** Push to the accounts array */
+      if (accounts && accounts.length) {
+        remainingAccounts.push(...accounts)
+      }
+
+      /** Push to the ixs array */
+      if (ixs && ixs.length) {
+        additionalIxs.push(...ixs)
+      }
+    })
+  }
+
+  return { remainingAccounts, additionalIxs }
 }
