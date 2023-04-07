@@ -36,6 +36,7 @@ import {
   getMerkleProof,
   getMerkleRoot,
   Metaplex,
+  MintLimitGuardSettings,
   Option,
   SolPaymentGuardSettings,
 } from "@metaplex-foundation/js"
@@ -288,11 +289,12 @@ export const getRemainingAccountsByGuardType = ({
     },
     mintLimit: () => {
       if (!candyMachine.candyGuard) return {}
+      const mintLimitGuard = guard as MintLimitGuardSettings
 
       const [mintCounterPda] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("mint_limit"),
-          new Uint8Array([0]),
+          new Uint8Array([mintLimitGuard.id]),
           payer.toBuffer(),
           candyMachine.candyGuard?.address.toBuffer(),
           candyMachine.address.toBuffer(),
