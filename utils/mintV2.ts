@@ -39,6 +39,7 @@ import {
   MintLimitGuardSettings,
   Option,
   SolPaymentGuardSettings,
+  TokenBurnGuardSettings,
 } from "@metaplex-foundation/js"
 import { u32 } from "@metaplex-foundation/beet"
 import allowList from "../allowlist.json"
@@ -312,6 +313,37 @@ export const getRemainingAccountsByGuardType = ({
         ],
       }
     },
+    tokenBurn: () => {
+      if (!candyMachine.candyGuard) return {}
+      const tokenBurnGuard = guard as TokenBurnGuardSettings
+      const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = new PublicKey(
+        "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+      );
+
+      const [mintBurnPda] = PublicKey.findProgramAddressSync(
+        [
+          payer.toBuffer(),
+          TOKEN_PROGRAM_ID.toBuffer(),
+          tokenBurnGuard.mint.toBuffer(),
+        ],
+        SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
+      )
+
+      return {
+        accounts: [
+          {
+            pubkey: mintBurnPda,
+            isSigner: false,
+            isWritable: true,
+          },
+          {
+            pubkey: tokenBurnGuard.mint,
+            isSigner: false,
+            isWritable: true,
+          },
+        ],
+      }
+    }
   }
 
   if (!remainingAccs[guardType]) {
