@@ -20,6 +20,7 @@ After these, you can use this UI to mint pNFTs.
     ```
   - Add your allow list wallets to the `allowlist.json` file
 - [Mint Limit](https://docs.metaplex.com/programs/candy-machine/available-guards/mint-limit)
+- [Token Burn](https://docs.metaplex.com/programs/candy-machine/available-guards/token-burn)
 
 ## develop locally
 
