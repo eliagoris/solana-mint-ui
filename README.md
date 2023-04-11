@@ -26,4 +26,10 @@ After these, you can use this UI to mint pNFTs.
 
 - `yarn`
 
+- Copy and fill the contents from the `.env.template` file into a `.env` file.
+
 - `yarn dev`
+
+## deploy
+
+You can deploy to any provider but make sure you add the `NEXT_PUBLIC_CANDY_MACHINE_ID` environment variable. (_Try [Vercel](https://vercel.com/new)_)
