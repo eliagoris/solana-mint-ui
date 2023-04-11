@@ -60,13 +60,16 @@ export default function Home() {
 
   /** Mints NFTs through a Candy Machine using Candy Guards */
   const handleMintV2 = async () => {
-    if (!metaplex || !candyMachine || !publicKey || !candyMachine.candyGuard)
-      return null
+    if (!metaplex || !candyMachine || !publicKey || !candyMachine.candyGuard) {
+      if (!candyMachine?.candyGuard)
+        throw new Error(
+          "This app only works with Candy Guards. Please setup your Guards through Sugar."
+        )
 
-    if (!candyMachine.candyGuard)
       throw new Error(
-        "This app only works with Candy Guards. Please setup your Guards through Sugar."
+        "Couldn't find the Candy Machine or the connection is not defined."
       )
+    }
 
     try {
       const { remainingAccounts, additionalIxs } =
