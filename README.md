@@ -33,3 +33,9 @@ After these, you can use this UI to mint pNFTs.
 ## deploy
 
 You can deploy to any provider but make sure you add the `NEXT_PUBLIC_CANDY_MACHINE_ID` environment variable. (_Try [Vercel](https://vercel.com/new)_)
+
+## contribute
+
+You can build guards, or improve the UI, and your PR will be happily reviewed & merged.
+
+Also, I'm accepting tips in SOL to keep improving this open-source project: 52zEuaG5VBQTzRP7MLMyEzSuKgYPF9E9dtaWrmXaiNkg
