@@ -29,6 +29,18 @@ export default function Home() {
     Sft | SftWithToken | Nft | NftWithToken | null
   >(null)
   const [formMessage, setFormMessage] = useState<string | null>(null)
+  const [liveCounter, setLiveCounter] = useState(0); 
+  const [all_items, setallitems] = useState(0); 
+  // Initial value of the live counter
+  
+  const decrementLiveCounter = () => {
+    if (liveCounter > 0) {
+      setLiveCounter((prevCounter) => prevCounter - 1);
+    }
+  };
+  
+  var remaining_items:number = 0;
+  var available_items:number = 0;
 
   useEffect(() => {
     ;(async () => {
@@ -47,13 +59,17 @@ export default function Home() {
 
         setCandyMachine(candyMachine)
 
+        remaining_items = (candyMachine.itemsRemaining.toNumber());
+        available_items = (candyMachine.itemsAvailable.toNumber());
+
+        setallitems(available_items);
+        setLiveCounter(remaining_items);
+
         const collection = await metaplex
           .nfts()
           .findByMint({ mintAddress: candyMachine.collectionMintAddress })
 
         setCollection(collection)
-
-        console.log(collection)
       }
     })()
   }, [wallet, connection])
@@ -70,6 +86,12 @@ export default function Home() {
         "Couldn't find the Candy Machine or the connection is not defined."
       )
     }
+
+
+    if (candyMachine.itemsRemaining.toNumber() == 0){
+      setFormMessage('No Items Remainig');
+    }
+
 
     try {
       const { remainingAccounts, additionalIxs } =
@@ -95,23 +117,47 @@ export default function Home() {
 
       tx.add(...instructions)
 
-      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-      const txid = await wallet.sendTransaction(tx, connection, {
-        signers: [mint],
-      })
 
-      const latest = await connection.getLatestBlockhash()
-      await connection.confirmTransaction({
-        blockhash: latest.blockhash,
-        lastValidBlockHeight: latest.lastValidBlockHeight,
-        signature: txid,
-      })
+      const rawTransaction = tx.serialize();
+  
+  
+    var txid:string;
+    
+    try{
+      txid = await connection.sendRawTransaction(rawTransaction,{skipPreflight: true,})
+    }
+    catch(e){
+      setFormMessage('mint failed');
+      return
+    }
+
+    while (true){
+      const ret = await connection.getSignatureStatus(txid!, {searchTransactionHistory:true})
+      try {
+        //@ts-ignore
+        if (ret){
+          if (ret.value && ret.value.err == null){
+            setFormMessage('mint failed');
+          } else if (ret.value && ret.value.err != null){
+            setFormMessage('successfully minted');
+            decrementLiveCounter();
+          }else{
+            continue
+          }
+        }
+      } catch(e){
+        setFormMessage('mint failed');
+      }
+
+    }
+      
     } catch (e) {
       const msg = fromTxError(e)
 
       if (msg) {
-        setFormMessage(msg.message)
+        setFormMessage(msg.message);
       }
     }
   }
@@ -193,7 +239,7 @@ export default function Home() {
                 }}
               >
                 <span style={{ fontSize: "11px" }}>Live</span>
-                <span style={{ fontSize: "11px" }}>512/1024</span>
+                <span style={{ fontSize: "11px" }}>{liveCounter}/{all_items}</span>
               </div>
               <button disabled={!publicKey} onClick={handleMintV2}>
                 mint
