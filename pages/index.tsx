@@ -12,7 +12,7 @@ import {
   SftWithToken,
   walletAdapterIdentity,
 } from "@metaplex-foundation/js"
-import { Keypair, Transaction } from "@solana/web3.js"
+import { Connection, Keypair, Transaction } from "@solana/web3.js"
 
 import {
   getRemainingAccountsForCandyGuard,
@@ -22,7 +22,7 @@ import { fromTxError } from "@/utils/errors"
 export default function Home() {
   const wallet = useWallet()
   const { publicKey } = wallet
-  const { connection } = useConnection()
+  const connection = new Connection(process.env.NEXT_PUBLIC_RPC as string)
   const [metaplex, setMetaplex] = useState<Metaplex | null>(null)
   const [candyMachine, setCandyMachine] = useState<CandyMachine | null>(null)
   const [collection, setCollection] = useState<
@@ -35,10 +35,10 @@ export default function Home() {
   
   const decrementLiveCounter = () => {
     if (liveCounter > 0) {
-      setLiveCounter((prevCounter) => prevCounter - 1);
+      setLiveCounter((prevCounter) => prevCounter + 1);
     }
   };
-  
+
   var remaining_items:number = 0;
   var available_items:number = 0;
 
@@ -72,7 +72,7 @@ export default function Home() {
         setCollection(collection)
       }
     })()
-  }, [wallet, connection])
+  }, [wallet])
 
   /** Mints NFTs through a Candy Machine using Candy Guards */
   const handleMintV2 = async () => {
@@ -96,6 +96,7 @@ export default function Home() {
     try {
       const { remainingAccounts, additionalIxs } =
         getRemainingAccountsForCandyGuard(candyMachine, publicKey)
+      console.log(remainingAccounts)
 
       const mint = Keypair.generate()
       const { instructions } = await mintV2Instruction(
@@ -110,6 +111,7 @@ export default function Home() {
       )
 
       const tx = new Transaction()
+      console.log(tx)
 
       if (additionalIxs?.length) {
         tx.add(...additionalIxs)
@@ -119,14 +121,13 @@ export default function Home() {
 
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-
-      const rawTransaction = tx.serialize();
-  
-  
+    
     var txid:string;
     
     try{
-      txid = await connection.sendRawTransaction(rawTransaction,{skipPreflight: true,})
+      txid = await wallet.sendTransaction(tx, connection, {
+        signers: [mint],
+      })    
     }
     catch(e){
       setFormMessage('mint failed');
@@ -140,6 +141,7 @@ export default function Home() {
         if (ret){
           if (ret.value && ret.value.err == null){
             setFormMessage('mint failed');
+            break
           } else if (ret.value && ret.value.err != null){
             setFormMessage('successfully minted');
             decrementLiveCounter();
@@ -149,6 +151,7 @@ export default function Home() {
         }
       } catch(e){
         setFormMessage('mint failed');
+        break
       }
 
     }
@@ -239,7 +242,7 @@ export default function Home() {
                 }}
               >
                 <span style={{ fontSize: "11px" }}>Live</span>
-                <span style={{ fontSize: "11px" }}>{liveCounter}/{all_items}</span>
+                <span style={{ fontSize: "11px" }}>{all_items-liveCounter}/{all_items}</span>
               </div>
               <button disabled={!publicKey} onClick={handleMintV2}>
                 mint
