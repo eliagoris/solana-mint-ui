@@ -193,7 +193,7 @@ export default function Home() {
                 }}
               >
                 <span style={{ fontSize: "11px" }}>Live</span>
-                <span style={{ fontSize: "11px" }}>512/1024</span>
+                {/* <span style={{ fontSize: "11px" }}>512/1024</span> */}
               </div>
               <button disabled={!publicKey} onClick={handleMintV2}>
                 mint
