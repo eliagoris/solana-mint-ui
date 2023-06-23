@@ -19,6 +19,7 @@ import {
   mintV2Instruction,
 } from "@/utils/mintV2"
 import { fromTxError } from "@/utils/errors"
+
 export default function Home() {
   const wallet = useWallet()
   const { publicKey } = wallet
@@ -29,6 +30,7 @@ export default function Home() {
     Sft | SftWithToken | Nft | NftWithToken | null
   >(null)
   const [formMessage, setFormMessage] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   useEffect(() => {
     ;(async () => {
@@ -72,6 +74,8 @@ export default function Home() {
     }
 
     try {
+      setIsLoading(true)
+
       const { remainingAccounts, additionalIxs } =
         getRemainingAccountsForCandyGuard(candyMachine, publicKey)
 
@@ -107,12 +111,23 @@ export default function Home() {
         lastValidBlockHeight: latest.lastValidBlockHeight,
         signature: txid,
       })
-    } catch (e) {
+
+      setFormMessage("Minted successfully!")
+    } catch (e: any) {
       const msg = fromTxError(e)
 
       if (msg) {
         setFormMessage(msg.message)
+      } else {
+        const msg = e.message || e.toString()
+        setFormMessage(msg)
       }
+    } finally {
+      setIsLoading(false)
+
+      setTimeout(() => {
+        setFormMessage(null)
+      }, 5000)
     }
   }
 
@@ -127,8 +142,8 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>pNFTs mint</title>
-        <meta name="description" content="Mint pNFTs from the UI" />
+        <title>Numbers Collection Mint</title>
+        <meta name="description" content="Get your unique NFT now!" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -159,7 +174,7 @@ export default function Home() {
               padding: "32px 24px",
               borderRadius: "16px",
               border: "1px solid #222",
-              minWidth: "320px",
+              width: "320px",
             }}
           >
             <h1>{collection?.name}</h1>
@@ -195,8 +210,8 @@ export default function Home() {
                 <span style={{ fontSize: "11px" }}>Live</span>
                 {/* <span style={{ fontSize: "11px" }}>512/1024</span> */}
               </div>
-              <button disabled={!publicKey} onClick={handleMintV2}>
-                mint
+              <button disabled={!publicKey || isLoading} onClick={handleMintV2}>
+                {isLoading ? "Minting your NFT..." : "Mint"}
               </button>
               <WalletMultiButton
                 style={{
@@ -210,7 +225,14 @@ export default function Home() {
                   lineHeight: "1.45",
                 }}
               />
-              {formMessage}
+              <p
+                style={{
+                  textAlign: "center",
+                  marginTop: "4px",
+                }}
+              >
+                {formMessage}
+              </p>
             </div>
           </div>
         </div>
