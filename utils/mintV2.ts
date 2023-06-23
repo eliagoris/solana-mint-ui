@@ -318,7 +318,7 @@ export const getRemainingAccountsByGuardType = ({
       const tokenBurnGuard = guard as TokenBurnGuardSettings
       const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = new PublicKey(
         "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-      );
+      )
 
       const [mintBurnPda] = PublicKey.findProgramAddressSync(
         [
@@ -343,7 +343,7 @@ export const getRemainingAccountsByGuardType = ({
           },
         ],
       }
-    }
+    },
   }
 
   if (!remainingAccs[guardType]) {
