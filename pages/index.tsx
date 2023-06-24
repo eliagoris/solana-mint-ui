@@ -12,6 +12,7 @@ import {
   SftWithToken,
   walletAdapterIdentity,
 } from "@metaplex-foundation/js"
+import ReactModal from "react-modal"
 import { Keypair, Transaction } from "@solana/web3.js"
 
 import {
@@ -31,6 +32,8 @@ export default function Home() {
   >(null)
   const [formMessage, setFormMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [mintCompleted, setMintCompleted] = useState<boolean>(false)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     ;(async () => {
@@ -60,7 +63,7 @@ export default function Home() {
     })()
   }, [wallet, connection])
 
-  /* Mints NFTs through a Candy Machine using Candy Guards */
+  /** Mints NFTs through a Candy Machine using Candy Guards */
   const handleMintV2 = async () => {
     if (!metaplex || !candyMachine || !publicKey || !candyMachine.candyGuard) {
       if (!candyMachine?.candyGuard)
@@ -74,8 +77,6 @@ export default function Home() {
     }
 
     try {
-      setIsLoading(true)
-
       const { remainingAccounts, additionalIxs } =
         getRemainingAccountsForCandyGuard(candyMachine, publicKey)
 
@@ -112,22 +113,15 @@ export default function Home() {
         signature: txid,
       })
 
-      setFormMessage("Minted successfully!")
-    } catch (e: any) {
+      // Mint completed
+      setMintCompleted(true)
+      setShowModal(true)
+    } catch (e) {
       const msg = fromTxError(e)
 
       if (msg) {
         setFormMessage(msg.message)
-      } else {
-        const msg = e.message || e.toString()
-        setFormMessage(msg)
       }
-    } finally {
-      setIsLoading(false)
-
-      setTimeout(() => {
-        setFormMessage(null)
-      }, 5000)
     }
   }
 
@@ -147,6 +141,14 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <style>
+        {`
+          body {
+            margin: 0;
+            padding: 0;
+          }
+        `}
+      </style>
       <main
         style={{
           display: "flex",
@@ -157,6 +159,7 @@ export default function Home() {
       >
         <div
           style={{
+            marginLeft: "16px",
             display: "flex",
             gap: "32px",
             alignItems: "flex-start",
@@ -168,13 +171,14 @@ export default function Home() {
           />
           <div
             style={{
+              marginRight: "16px",
               display: "flex",
               flexDirection: "column",
-              background: "#111",
+              background: "rgba(17, 17, 17, 0.7)", // modify opacity, currently `0.7`
               padding: "32px 24px",
               borderRadius: "16px",
               border: "1px solid #222",
-              width: "320px",
+              minWidth: "320px",
             }}
           >
             <h1>{collection?.name}</h1>
@@ -237,6 +241,37 @@ export default function Home() {
           </div>
         </div>
       </main>
+      <ReactModal
+        isOpen={showModal}
+        onRequestClose={() => setShowModal(false)}
+        style={{
+          overlay: {
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          },
+          content: {
+            background: "rgba(17, 17, 17, 0.9)",
+            borderRadius: "8px",
+            border: "none",
+            boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.25)",
+            top: "50%",
+            left: "50%",
+            right: "auto",
+            bottom: "auto",
+            marginRight: "-50%",
+            transform: "translate(-50%, -50%)",
+            maxWidth: "400px",
+            width: "80%",
+            padding: "16px",
+          },
+        }}
+        contentLabel="Mint Completed"
+        ariaHideApp={false}
+      >
+        <center>
+          <h2>Mint Completed</h2>
+          {/* <p>A message for your minters!</p> */}
+        </center>
+      </ReactModal>
     </>
   )
 }
