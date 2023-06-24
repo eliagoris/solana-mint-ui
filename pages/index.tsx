@@ -60,7 +60,7 @@ export default function Home() {
     })()
   }, [wallet, connection])
 
-  /** Mints NFTs through a Candy Machine using Candy Guards */
+  /* Mints NFTs through a Candy Machine using Candy Guards */
   const handleMintV2 = async () => {
     if (!metaplex || !candyMachine || !publicKey || !candyMachine.candyGuard) {
       if (!candyMachine?.candyGuard)
