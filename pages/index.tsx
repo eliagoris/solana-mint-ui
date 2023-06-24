@@ -30,6 +30,7 @@ export default function Home() {
     Sft | SftWithToken | Nft | NftWithToken | null
   >(null);
   const [formMessage, setFormMessage] = useState<string | null>(null);
+  const [mintCompleted, setMintCompleted] = useState<boolean>(false);
   const [showModal, setShowModal] = useState(false); 
 
   // const backgroundImage = ""
