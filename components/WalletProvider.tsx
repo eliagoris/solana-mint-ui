@@ -5,9 +5,18 @@ import {
 } from "@solana/wallet-adapter-react"
 import {
   BackpackWalletAdapter,
+  BraveWalletAdapter,
+  CoinbaseWalletAdapter,
+  CoinhubWalletAdapter,
+  GlowWalletAdapter,
   LedgerWalletAdapter,
+  MathWalletAdapter,
   PhantomWalletAdapter,
+  SlopeWalletAdapter,
   SolflareWalletAdapter,
+  SolletWalletAdapter,
+  SpotWalletAdapter,
+  TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets"
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui"
 
@@ -15,9 +24,7 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui"
 require("@solana/wallet-adapter-react-ui/styles.css")
 
 const Wallet = ({ children }: { children: React.ReactChild }) => {
-  if (!process.env.NEXT_PUBLIC_RPC_ENDPOINT) throw new Error("Missing RPC URL")
-
-  const endpoint = process.env.NEXT_PUBLIC_RPC_ENDPOINT
+  const endpoint = "https://api.devnet.solana.com"
 
   const wallets = useMemo(
     () => [
@@ -33,6 +40,15 @@ const Wallet = ({ children }: { children: React.ReactChild }) => {
       new BackpackWalletAdapter(),
       new SolflareWalletAdapter(),
       new LedgerWalletAdapter(),
+      new GlowWalletAdapter(),
+      new BraveWalletAdapter(),
+      new MathWalletAdapter(),
+      new SpotWalletAdapter(),
+      new SlopeWalletAdapter(),
+      new TorusWalletAdapter(),
+      new SolletWalletAdapter(),
+      new CoinhubWalletAdapter(),
+      new CoinbaseWalletAdapter(),
     ],
     []
   )
