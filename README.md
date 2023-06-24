@@ -73,11 +73,19 @@ Navigate to `/components/WalletProvider.tsx` and paste your RPC endpoint url in 
 ![rpc-paste2](https://media.discordapp.net/attachments/1051281685234327613/1120498024444071966/rpc-paste2.png?width=932&height=248)
 <br><br>
 <b>Update your `favicon.ico`</b><br><br>
-Use [remove.bg](https://remove.bg) to create a PNG of your logo, download and rename the file to `favicon.ico`. Delete the existing `favicon.ico` in the `/public/` folder (the default vercel image), and add your file.
+Use [remove.bg](https://remove.bg) to create a PNG of your logo, download and rename the file to `favicon.ico`. Delete the existing `favicon.ico` in the `/public/` folder (the default vercel image), and add your file.<br><br>
+<i>Optional</i>: Modify the background.<br><br>
+Uncomment this line in `index.tsx`<br><br>
+![bg-edit](https://media.discordapp.net/attachments/1051281685234327613/1122182177090707456/bgedit.png?width=1864&height=450)<br><br>
+Add an image url<br><br>
+![bg-edit2](https://media.discordapp.net/attachments/1051281685234327613/1122182176000188507/bg-edit2.png?width=1864&height=432)<br><br>
+Uncomment this line:<br><br>
+![bg-edit3](https://media.discordapp.net/attachments/1051281685234327613/1122182176461574225/bg-edit3.png?width=1864&height=366)<br><br>
+![bg-edit4](https://media.discordapp.net/attachments/1051281685234327613/1122182176818069606/bg-edit4.png?width=1864&height=364)<br><br>
 
 # Ship it on Vercel
 
 Head over to [Vercel.com](https://vercel.com) and link your Github.<br><br>
 Add New Project<br><br>
-![add new project](https://media.discordapp.net/attachments/1051281685234327613/1121085093641998336/image.png)
-Select this repo<br><br>
+![add new project](https://media.discordapp.net/attachments/1051281685234327613/1121085093641998336/image.png)<br><br>
+Select this repo
