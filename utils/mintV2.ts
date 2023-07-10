@@ -40,6 +40,7 @@ import {
   Option,
   SolPaymentGuardSettings,
   TokenBurnGuardSettings,
+  TokenGateGuardSettings,
 } from "@metaplex-foundation/js"
 import { u32 } from "@metaplex-foundation/beet"
 import allowList from "../allowlist.json"
@@ -187,6 +188,10 @@ export async function mintV2Instruction(
   return { instructions: ixs }
 }
 
+const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = new PublicKey(
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+)
+
 /**
  * Returns remaining accounts by Candy Guard type.
  * Some Guards doesn't require remaining accounts, so in this case it will return an empty array.
@@ -212,6 +217,29 @@ export const getRemainingAccountsByGuardType = ({
       // start date is default
       return {}
     },
+    tokenGate: () => {
+      const tokenGateGuard = guard as TokenGateGuardSettings
+
+      const [tokenAccount] = PublicKey.findProgramAddressSync(
+        [
+          payer.toBuffer(),
+          TOKEN_PROGRAM_ID.toBuffer(),
+          tokenGateGuard.mint.toBuffer(),
+        ],
+        SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
+      )
+
+      return {
+        accounts: [
+          {
+            pubkey: tokenAccount,
+            isSigner: false,
+            isWritable: false,
+          },
+        ],
+      }
+    },
+
     solPayment: () => {
       const solPaymentGuard = guard as SolPaymentGuardSettings
 
@@ -316,9 +344,6 @@ export const getRemainingAccountsByGuardType = ({
     tokenBurn: () => {
       if (!candyMachine.candyGuard) return {}
       const tokenBurnGuard = guard as TokenBurnGuardSettings
-      const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = new PublicKey(
-        "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-      )
 
       const [mintBurnPda] = PublicKey.findProgramAddressSync(
         [
