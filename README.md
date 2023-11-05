@@ -36,12 +36,6 @@ After these, you can use this UI to mint pNFTs.
 
 You can deploy to any provider but make sure you add the `NEXT_PUBLIC_CANDY_MACHINE_ID` environment variable. (_Try [Vercel](https://vercel.com/new)_)
 
-## contribute
-
-You can build guards, or improve the UI, and your PR will be happily reviewed & merged.
-
-Also, I'm accepting tips in SOL to keep improving this open-source project: 52zEuaG5VBQTzRP7MLMyEzSuKgYPF9E9dtaWrmXaiNkg
-
 ### adding your own guards
 
 1. Follow [this Link](https://github.com/metaplex-foundation/mpl-candy-guard/tree/c8b52c7ea090d88dc1030df9613a88097ad2b912/js/test/guards), find the test file of the guard you want to add, and check the necessary 'remaining accounts'.
@@ -54,3 +48,9 @@ Also, I'm accepting tips in SOL to keep improving this open-source project: 52zE
 3. Add the 'remaining accounts' necessary for your guard to work. Check the other guards to see how it is done.
 
 4. You're good to go, no additional steps are necessary.
+
+## contribute
+
+- You can build guards, or improve the UI, and your PR will be happily reviewed & merged.
+
+- Send tips in SOL to help me build in public: 52zEuaG5VBQTzRP7MLMyEzSuKgYPF9E9dtaWrmXaiNkg
