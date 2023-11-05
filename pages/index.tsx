@@ -58,7 +58,7 @@ export default function Home() {
         console.log(collection)
       }
     })()
-  }, [wallet])
+  }, [wallet, collection, candyMachine])
 
   /** Mints NFTs through a Candy Machine using Candy Guards */
   const handleMintV2 = async () => {
