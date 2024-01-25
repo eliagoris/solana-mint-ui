@@ -6,7 +6,7 @@ import {
   CandyMachine,
   mplCandyMachine,
 } from "@metaplex-foundation/mpl-candy-machine"
-import { publicKey } from "@metaplex-foundation/umi"
+import { PublicKey, publicKey, some } from "@metaplex-foundation/umi"
 import {
   fetchCandyMachine,
   fetchCandyGuard,
@@ -22,6 +22,7 @@ import { mintV2 } from "@metaplex-foundation/mpl-candy-machine"
 import { setComputeUnitLimit } from "@metaplex-foundation/mpl-toolbox"
 import { transactionBuilder, generateSigner } from "@metaplex-foundation/umi"
 import { useWallet } from "@solana/wallet-adapter-react"
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
 
 const candyMachineId = process.env.NEXT_PUBLIC_CANDY_MACHINE_ID
 type Props = {}
@@ -66,6 +67,13 @@ export default function Umi(props: Props) {
     const umi2 = umi.use(walletAdapterIdentity(wallet))
     const nftMint = generateSigner(umi2)
 
+    console.log(candyGuard?.guards.solPayment)
+    const destination: PublicKey =
+      candyGuard?.guards.solPayment.value.destination
+    const lamports = candyGuard?.guards.solPayment.value.lamports
+
+    console.log(candyMachine.mintAuthority.toString())
+    console.log(destination.toString())
     await transactionBuilder()
       .add(setComputeUnitLimit(umi2, { units: 800_000 }))
       .add(
@@ -73,9 +81,13 @@ export default function Umi(props: Props) {
           candyMachine: candyMachine.publicKey,
           nftMint,
           collectionMint: candyMachine.collectionMint,
-          collectionUpdateAuthority: candyMachine.mintAuthority,
+          collectionUpdateAuthority: candyMachine.authority,
           tokenStandard: candyMachine.tokenStandard,
           candyGuard: candyGuard?.publicKey,
+          mintArgs: {
+            mintLimit: some({ id: 0 }),
+            solPayment: some({ lamports, destination }),
+          },
         })
       )
       .sendAndConfirm(umi2)
@@ -91,7 +103,18 @@ export default function Umi(props: Props) {
           color: red;
         }
       `}</style>
-
+      <WalletMultiButton
+        style={{
+          width: "100%",
+          height: "auto",
+          marginTop: "8px",
+          padding: "8px 0",
+          justifyContent: "center",
+          fontSize: "13px",
+          backgroundColor: "#111",
+          lineHeight: "1.45",
+        }}
+      />
       <button onClick={mint}>mint</button>
     </div>
   )
