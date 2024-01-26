@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
-
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults"
 import {
   CandyGuard,
@@ -13,17 +12,24 @@ import {
   fetchCandyGuard,
 } from "@metaplex-foundation/mpl-candy-machine"
 import { walletAdapterIdentity } from "@metaplex-foundation/umi-signer-wallet-adapters"
-
-// Use the RPC endpoint of your choice.
-const umi = createUmi("https://api.devnet.solana.com").use(mplCandyMachine())
-
 import { mintV2 } from "@metaplex-foundation/mpl-candy-machine"
 import { setComputeUnitLimit } from "@metaplex-foundation/mpl-toolbox"
 import { transactionBuilder, generateSigner } from "@metaplex-foundation/umi"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
-import { fromTxError } from "@/utils/errors"
 import Head from "next/head"
+
+import { fromTxError } from "@/utils/errors"
+
+if (!process.env.NEXT_PUBLIC_RPC_ENDPOINT)
+  throw new Error(
+    "No RPC endpoint. Please, provide a NEXT_PUBLIC_RPC_ENDPOINT env variable"
+  )
+
+// Use the RPC endpoint of your choice.
+const umi = createUmi(process.env.NEXT_PUBLIC_RPC_ENDPOINT).use(
+  mplCandyMachine()
+)
 
 const candyMachineId = process.env.NEXT_PUBLIC_CANDY_MACHINE_ID
 
