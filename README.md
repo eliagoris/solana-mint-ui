@@ -1,3 +1,9 @@
+# solana-mint-ui
+
+⚛️ Up to date mint UI for NFTs on Solana. Works with latest version of Candy Machine and pNFTs.
+
+⚡ Zero additional dependencies besides Nextjs, Metaplex & Solana. Build your own UI from scratch =)
+
 ## How to set up a Candy Machine:
 
 - Create your Candy Machine using [Sugar](https://docs.metaplex.com/programs/candy-machine/how-to-guides/my-first-candy-machine-part1) (now supports pNFTs)
@@ -14,15 +20,15 @@ Mostly candy guards, as they're currently being handled automatically. There are
 
 ## develop locally
 
-- `yarn`
+- `yarn` or `npm install`
 
 - Copy and fill the contents from the `.env.template` file into a `.env` file.
 
-- `yarn dev`
+- `yarn dev` or `npm run dev`
 
 ## deploy
 
-You can deploy to any provider but make sure you add the `NEXT_PUBLIC_CANDY_MACHINE_ID` environment variable. (_Try [Vercel](https://vercel.com/new)_)
+You can deploy to any provider but make sure you add the environment variables from `.env.template`. (_Try [Vercel](https://vercel.com/new)_)
 
 ## If you like this, donate
 
