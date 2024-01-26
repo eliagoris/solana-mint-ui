@@ -4,9 +4,10 @@ import { createUmi } from "@metaplex-foundation/umi-bundle-defaults"
 import {
   CandyGuard,
   CandyMachine,
+  DefaultGuardSetMintArgs,
   mplCandyMachine,
 } from "@metaplex-foundation/mpl-candy-machine"
-import { PublicKey, publicKey, some } from "@metaplex-foundation/umi"
+import { publicKey, some, unwrapOption } from "@metaplex-foundation/umi"
 import {
   fetchCandyMachine,
   fetchCandyGuard,
@@ -50,13 +51,15 @@ export default function Umi(props: Props) {
     fetchCandyMachineData()
   }, [fetchCandyMachineData])
 
+  const solPaymentGuard = useMemo(() => {
+    return candyGuard ? unwrapOption(candyGuard.guards.solPayment) : null
+  }, [candyGuard])
+
   const cost = useMemo(
     () =>
       candyGuard
-        ? candyGuard?.guards.solPayment
-          ? Number(candyGuard?.guards.solPayment?.value.lamports.basisPoints) /
-              1e9 +
-            " SOL"
+        ? solPaymentGuard
+          ? Number(solPaymentGuard.lamports.basisPoints) / 1e9 + " SOL"
           : "Free mint"
         : "...",
     [candyGuard]
@@ -64,33 +67,52 @@ export default function Umi(props: Props) {
 
   const mint = async () => {
     if (!candyMachine) throw new Error("No candy machine")
-    const umi2 = umi.use(walletAdapterIdentity(wallet))
-    const nftMint = generateSigner(umi2)
-
-    console.log(candyGuard?.guards.solPayment)
-    const destination: PublicKey =
-      candyGuard?.guards.solPayment.value.destination
-    const lamports = candyGuard?.guards.solPayment.value.lamports
-
-    console.log(candyMachine.mintAuthority.toString())
-    console.log(destination.toString())
-    await transactionBuilder()
-      .add(setComputeUnitLimit(umi2, { units: 800_000 }))
-      .add(
-        mintV2(umi2, {
-          candyMachine: candyMachine.publicKey,
-          nftMint,
-          collectionMint: candyMachine.collectionMint,
-          collectionUpdateAuthority: candyMachine.authority,
-          tokenStandard: candyMachine.tokenStandard,
-          candyGuard: candyGuard?.publicKey,
-          mintArgs: {
-            mintLimit: some({ id: 0 }),
-            solPayment: some({ lamports, destination }),
-          },
-        })
+    if (!candyGuard)
+      throw new Error(
+        "No candy guard found. Set up a guard for your candy machine."
       )
-      .sendAndConfirm(umi2)
+    const { guards } = candyGuard
+
+    const enabledGuardsKeys =
+      guards && Object.keys(guards).filter((guardKey) => guards[guardKey])
+
+    let mintArgs: Partial<DefaultGuardSetMintArgs> = {}
+
+    // If there are enabled guards, set the mintArgs
+    if (enabledGuardsKeys.length) {
+      /** Map all Guards and grab their remaining accounts */
+      enabledGuardsKeys.forEach((guardKey) => {
+        const guardObject = unwrapOption(candyGuard.guards[guardKey])
+        if (!guardObject) return null
+
+        // Set mintArgs automatically based on the fields defined in each guard
+        mintArgs = { ...mintArgs, [guardKey]: some(guardObject) }
+      })
+    }
+
+    const umiWalletAdapter = umi.use(walletAdapterIdentity(wallet))
+    const nftMint = generateSigner(umiWalletAdapter)
+
+    try {
+      const res = await transactionBuilder()
+        .add(setComputeUnitLimit(umiWalletAdapter, { units: 800_000 }))
+        .add(
+          mintV2(umiWalletAdapter, {
+            candyMachine: candyMachine.publicKey,
+            nftMint,
+            collectionMint: candyMachine.collectionMint,
+            collectionUpdateAuthority: candyMachine.authority,
+            tokenStandard: candyMachine.tokenStandard,
+            candyGuard: candyGuard?.publicKey,
+            mintArgs,
+          })
+        )
+        .sendAndConfirm(umiWalletAdapter)
+
+      console.log(res.result)
+    } catch (e) {
+      alert(e)
+    }
   }
 
   console.log(cost)
