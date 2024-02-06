@@ -1,14 +1,14 @@
 # solana-mint-ui
 
-⚛️ Up to date mint UI for NFTs on Solana. Works with latest version of Candy Machine and pNFTs.
+⚛️ Up to date mint UI for NFTs on Solana. Works with the latest version of Candy Machine and pNFTs.
 
 ⚡ Zero additional dependencies besides Nextjs, Metaplex & Solana. Build your own UI from scratch =)
 
 ## How to set up a Candy Machine:
 
-- Create your Candy Machine using [Sugar](https://docs.metaplex.com/programs/candy-machine/how-to-guides/my-first-candy-machine-part1) (now supports pNFTs)
+- Create your Candy Machine. Recommend using [Sugar](https://developers.metaplex.com/candy-machine/sugar/installation) (now supports pNFTs)
 - Change token standard to pNFT: `sugar config set -t pnft` (optional)
-- Make sure you have setup your [Candy Guard](https://docs.metaplex.com/programs/candy-machine/how-to-guides/my-first-candy-machine-part1#candy-guards---further-configuration). _This is a necessary step._
+- Make sure you have set up your Candy Guards. [Candy Guards on Sugar](https://developers.metaplex.com/candy-machine/sugar/commands/guard). _This is a necessary step._
 
 After these, you can use this UI to mint NFTs from your Candy Machine.
 
